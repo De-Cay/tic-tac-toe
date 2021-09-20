@@ -1,6 +1,6 @@
 body {
   box-sizing: border-box;
-  font-family: sans-serif;
+  font-family: monospace;
 }
 
 header {
@@ -9,36 +9,25 @@ header {
 
 main {
   margin-top: 20vh;
-}
-
-main > div {
   display: flex;
   justify-content: center;
 }
 
-main > div > div {
+table {
+  border-collapse: collapse;  
+}
+
+td {
   height: 150px;
   width: 150px;
-  border-right: 1px solid red;
-  border-bottom: 1px solid red;
-  text-align: center;
+  border: 1px solid red;
   cursor: pointer;
-  font-size: 50px;
-  line-height: 150px;
-}
-
-main > div:first-child > div{
-  border-top: 1px solid red;
-}
-
-main > div > div:first-child {
-  border-left: 1px solid red;
+  font-size: 100px;
+  text-align: center;
+  border-collapse: collapse;
 }
 
 dialog {
-  position: fixed;
-  z-index: 1;
-  left: 0;
   top: 0;
   width: 100%;
   height: 100%;
