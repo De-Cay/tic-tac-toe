@@ -1,11 +1,59 @@
 const Game = {
   selectedVariant: '',
-  board: [Array.from(Array(3)), Array.from(Array(3)), Array.from(Array(3))],
-  tileList: ['1', '2' , '3', '4', '5', '6', '7', '8', '9']
 }
 
-printVariantAndCheckValid = (target) => {
+checkColumn = (totalRows, cellIndex, totalLength) => {
+  let jj = 1;
+  while(jj < totalLength) {
+    if (totalRows.item(jj).cells[cellIndex].textContent !==  (totalRows.item(jj - 1).cells[cellIndex].textContent)) {
+      return false;
+    }
+    jj++;
+  }
+  return true;
+}
+
+checkTheWinner = (target, $table) => {
+  const { cellIndex } = target;
+  const { rowIndex } = target.parentNode;
+  const totalRows = $table.rows;
+  const $clickedRowCells = totalRows.item(rowIndex).cells;
+  let ii = 1;
+  const totalLength = $clickedRowCells.length;
+  // Check the row
+  while(ii < totalLength) {
+    if ($clickedRowCells[ii].textContent !== $clickedRowCells[ii - 1].textContent) {
+      // Check the column
+      if (checkColumn(totalRows, cellIndex, totalLength)) {
+        return true;
+      }
+      return false;
+    }
+    ii++;
+  }
+  return true;
+}
+
+printVariantAndCheckValid = (target, $table) => {
   target.textContent = Game.selectedVariant;
+  const isPlayerWon = checkTheWinner(target, $table);
+  if(isPlayerWon) {
+    setTimeout(() => {
+      alert('You Won');
+      initializeGame();
+    }, 500)
+    return;
+  }
+
+  // // Computer play logic
+  // //
+  // //
+  // const isComputerWon = checkTheWinner(target);
+  // if(isComputerWon) {
+  //   alert('Computer Won');
+  //   initializeGame();
+  //   return;
+  // }
 }
 
 const restartGame = ($table, $dialog) => {
@@ -24,7 +72,7 @@ const restartGame = ($table, $dialog) => {
 
   // Empty the game board
   for(let row = 0, noOfRows = $table.rows.length; row < noOfRows; row++) {
-    const cells = $table.rows[row];
+    const cells = $table.rows.item(row).cells;
     for (let cell = 0, noOfCells = cells.length; cell < noOfCells; cell++) {
       cells[cell].textContent = '';
     }
@@ -34,8 +82,7 @@ const restartGame = ($table, $dialog) => {
   $table.addEventListener('click', (e) => {
     const { target } = e;
     if (target.tagName === 'TD') {
-      console.log(target.parentNode.rowIndex, target.cellIndex);
-      printVariantAndCheckValid(target);
+      printVariantAndCheckValid(target, $table);
     }
   }, false);
 }
@@ -43,7 +90,6 @@ const restartGame = ($table, $dialog) => {
 const initializeGame = () => {
   const $table = document.querySelector('table');
   const $dialog = document.querySelector('dialog');
-
   restartGame($table, $dialog);
 }
 
