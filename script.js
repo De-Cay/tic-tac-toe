@@ -1,5 +1,18 @@
 const Game = {
   selectedVariant: '',
+  $table: document.querySelector('table'),
+  $dialog: document.querySelector('dialog')
+}
+
+checkRow = ($clickedRowCells, totalLength) => {
+  let ii = 1;
+  while(ii < totalLength) {
+    if ($clickedRowCells[ii].textContent !== $clickedRowCells[ii - 1].textContent) {
+      return false;
+    }
+    ii++;
+  }
+  return true;
 }
 
 checkColumn = (totalRows, cellIndex, totalLength) => {
@@ -13,86 +26,84 @@ checkColumn = (totalRows, cellIndex, totalLength) => {
   return true;
 }
 
-checkTheWinner = (target, $table) => {
-  const { cellIndex } = target;
-  const { rowIndex } = target.parentNode;
-  const totalRows = $table.rows;
-  const $clickedRowCells = totalRows.item(rowIndex).cells;
-  let ii = 1;
-  const totalLength = $clickedRowCells.length;
-  // Check the row
-  while(ii < totalLength) {
-    if ($clickedRowCells[ii].textContent !== $clickedRowCells[ii - 1].textContent) {
-      // Check the column
-      if (checkColumn(totalRows, cellIndex, totalLength)) {
-        return true;
-      }
-      return false;
-    }
-    ii++;
-  }
-  return true;
+checkDiagonal = (cellIndex, rowIndex) => {
+  return false;
 }
 
-printVariantAndCheckValid = (target, $table) => {
+checkTheWinner = (cellIndex, rowIndex) => {
+  const totalRows = Game.$table.rows;
+  const $clickedRowCells = totalRows.item(rowIndex).cells;
+  const totalLength = $clickedRowCells.length;
+
+  if (checkRow($clickedRowCells, totalLength)) {
+    return true;
+  } else if(checkColumn(totalRows, cellIndex, totalLength)) {
+    return true;
+  } else if (checkDiagonal(cellIndex, rowIndex)) {
+    return true;
+  }
+  return false;
+}
+
+printVariantAndCheckValid = (target) => {
   target.textContent = Game.selectedVariant;
-  const isPlayerWon = checkTheWinner(target, $table);
+  const { cellIndex } = target;
+  const { rowIndex } = target.parentNode;
+  const isPlayerWon = checkTheWinner(cellIndex, rowIndex);
   if(isPlayerWon) {
-    setTimeout(() => {
+    return setTimeout(() => {
+      startGame();
       alert('You Won');
-      initializeGame();
-    }, 500)
-    return;
+    }, 100);
   }
 
-  // // Computer play logic
-  // //
-  // //
-  // const isComputerWon = checkTheWinner(target);
+  // Computer play logic
+  //......
+  //.....
+
+  // const isComputerWon = checkTheWinner(cellIndex, rowIndex);
   // if(isComputerWon) {
-  //   alert('Computer Won');
-  //   initializeGame();
-  //   return;
+  //   return setTimeout(() => {
+  //     startGame();
+  //     alert('You Won');
+  //   }, 100);
   // }
 }
 
-const restartGame = ($table, $dialog) => {
+const startGame = () => {
   // prompt the user to choose
-  $dialog.show();
-
-  // Add Click event listener on the dilog
-  $dialog.addEventListener('click', (e) => {
-    const { target } = e;
-    const selection = target.getAttribute('data-selection');
-    if (selection) {
-      $dialog.close();
-      Game.selectedVariant = selection;
-    }
-  }, false);
+  Game.$dialog.show();
 
   // Empty the game board
+  const { $table } = Game;
   for(let row = 0, noOfRows = $table.rows.length; row < noOfRows; row++) {
     const cells = $table.rows.item(row).cells;
     for (let cell = 0, noOfCells = cells.length; cell < noOfCells; cell++) {
       cells[cell].textContent = '';
     }
   }
-  
-  // Add Click event listener on the main
-  $table.addEventListener('click', (e) => {
-    const { target } = e;
-    if (target.tagName === 'TD') {
-      printVariantAndCheckValid(target, $table);
-    }
-  }, false);
 }
 
 const initializeGame = () => {
-  const $table = document.querySelector('table');
-  const $dialog = document.querySelector('dialog');
-  restartGame($table, $dialog);
+  // Add Click event listener on the dilog
+  Game.$dialog.addEventListener('click', (e) => {
+    const { target } = e;
+    const selection = target.getAttribute('data-selection');
+    if (selection) {
+      Game.$dialog.close();
+      Game.selectedVariant = selection;
+    }
+  }, false);
+
+  // Add Click event listener on the main
+  Game.$table.addEventListener('click', (e) => {
+    const { target } = e;
+    if (target.tagName === 'TD') {
+      printVariantAndCheckValid(target);
+    }
+  }, false);
+
+  startGame();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  initializeGame();
-}, false);
+document.addEventListener('DOMContentLoaded', initializeGame, false);
