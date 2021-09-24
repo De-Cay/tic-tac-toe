@@ -1,8 +1,14 @@
 const Game = {
   selectedVariant: '',
+  totalVariant: ['x', 'o'],
+  computerSelected: '',
   $table: document.querySelector('table'),
-  $dialog: document.querySelector('dialog')
-}
+  $dialog: document.querySelector('dialog'),
+  diagonalIndeces: {
+    mainDiagonal: [[0, 0], [1, 1], [2, 2]],
+    antiDiagonal: [[0, 2], [1, 1], [2, 0]]
+  }
+};
 
 checkRow = ($clickedRowCells, totalLength) => {
   let ii = 1;
@@ -26,11 +32,26 @@ checkColumn = (totalRows, cellIndex, totalLength) => {
   return true;
 }
 
-checkDiagonal = (cellIndex, rowIndex) => {
-  return false;
+checkDiagonal = (totalRows, varient) => {
+  const { 
+    diagonalIndeces: {
+      mainDiagonal,
+      antiDiagonal
+    }
+  } = Game;
+
+  const isMainDiagonalWin = mainDiagonal.reduce((acm, indeces) => {
+    return acm && (varient === totalRows.item(indeces[0]).cells[indeces[1]].textContent);
+  }, true);
+
+  const isAntiDiagonalWin = antiDiagonal.reduce((acm, indeces) => {
+    return acm && (varient === totalRows.item(indeces[0]).cells[indeces[1]].textContent);
+  }, true);
+
+  return isMainDiagonalWin || isAntiDiagonalWin; 
 }
 
-checkTheWinner = (cellIndex, rowIndex) => {
+checkTheWinner = (cellIndex, rowIndex, varient) => {
   const totalRows = Game.$table.rows;
   const $clickedRowCells = totalRows.item(rowIndex).cells;
   const totalLength = $clickedRowCells.length;
@@ -39,35 +60,46 @@ checkTheWinner = (cellIndex, rowIndex) => {
     return true;
   } else if(checkColumn(totalRows, cellIndex, totalLength)) {
     return true;
-  } else if (checkDiagonal(cellIndex, rowIndex)) {
+  } else if (checkDiagonal(totalRows, varient)) {
     return true;
   }
   return false;
+}
+
+botPlay = () => {
+  const { $table } = Game;
+  for(let row = 0, noOfRows = $table.rows.length; row < noOfRows; row++) {
+    const cells = $table.rows.item(row).cells;
+    for (let cell = 0, noOfCells = cells.length; cell < noOfCells; cell++) {
+      if(!cells[cell].textContent) {
+        cells[cell].textContent = Game.computerSelected;
+        return {row, cell};
+      }
+    }
+  }
 }
 
 printVariantAndCheckValid = (target) => {
   target.textContent = Game.selectedVariant;
   const { cellIndex } = target;
   const { rowIndex } = target.parentNode;
-  const isPlayerWon = checkTheWinner(cellIndex, rowIndex);
+  const isPlayerWon = checkTheWinner(cellIndex, rowIndex, Game.selectedVariant);
   if(isPlayerWon) {
     return setTimeout(() => {
-      startGame();
       alert('You Won');
-    }, 100);
+      startGame();
+    }, 200);
   }
+ 
+  const botIndeces = botPlay();
 
-  // Computer play logic
-  //......
-  //.....
-
-  // const isComputerWon = checkTheWinner(cellIndex, rowIndex);
-  // if(isComputerWon) {
-  //   return setTimeout(() => {
-  //     startGame();
-  //     alert('You Won');
-  //   }, 100);
-  // }
+  const isComputerWon = checkTheWinner(botIndeces.cell, botIndeces.row, Game.computerSelected);
+  if(isComputerWon) {
+    return setTimeout(() => {
+      alert('You Loose');
+      startGame();
+    }, 200);
+  }
 }
 
 const startGame = () => {
@@ -92,6 +124,7 @@ const initializeGame = () => {
     if (selection) {
       Game.$dialog.close();
       Game.selectedVariant = selection;
+      Game.computerSelected = Game.totalVariant.find(val => val !== selection);
     }
   }, false);
 
